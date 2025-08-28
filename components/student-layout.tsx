@@ -31,15 +31,20 @@ export function StudentLayout({ children }: StudentLayoutProps) {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-amber-50 to-indigo-50">
+    <div className="relative min-h-screen bg-white">
+      {/* Playful background blobs visible on all student pages */}
+      <div className="pointer-events-none absolute -top-10 -left-12 h-56 w-56 rounded-full bg-pink-300/40 blur-3xl animate-pulse" />
+      <div className="pointer-events-none absolute top-24 -right-16 h-64 w-64 rounded-full bg-indigo-300/40 blur-3xl animate-ping" />
+      <div className="pointer-events-none absolute -bottom-8 left-1/3 h-40 w-40 rounded-full bg-amber-300/40 blur-3xl animate-pulse" />
+
       {/* Header */}
-      <header className="bg-card/80 backdrop-blur border-b shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="bg-gradient-to-r from-pink-100/70 via-amber-100/70 to-indigo-100/70 backdrop-blur border-b shadow-sm sticky top-0 z-50">
+        <div className="relative max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-primary rounded-full p-2">
-              <BookOpen className="h-6 w-6 text-primary-foreground" />
+            <div className="rounded-full overflow-hidden">    
+              <img src="/icon.png" alt="ロゴ" className="h-25 w-25 sm:h-20 sm:w-20 rounded-full object-cover" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">KidCoder-Online</h1>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-primary">HOMEラボ・キッズ</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-3 pr-2">
@@ -76,6 +81,9 @@ export function StudentLayout({ children }: StudentLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          {/* Fun header stickers */}
+          <div className="pointer-events-none absolute right-2 top-2 text-2xl rotate-6 select-none">🎉</div>
+          <div className="pointer-events-none absolute left-3 bottom-1 text-2xl -rotate-6 select-none">✨</div>
         </div>
       </header>
 

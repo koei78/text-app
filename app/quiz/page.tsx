@@ -131,35 +131,47 @@ export default function QuizPage() {
 
         {/* Quiz Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {quizzes.map((quiz) => (
+          {quizzes.map((quiz, idx) => (
             <Card
               key={quiz.id}
-              className="hover:shadow-lg transition-shadow cursor-pointer border-0 bg-card/80 backdrop-blur group"
+              className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all"
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="bg-secondary/10 rounded-lg p-3 mb-3">
-                    <Brain className="h-6 w-6 text-secondary" />
+              <div className="relative aspect-square">
+                <img
+                  src={idx % 2 === 0 ? "/math-addition-colorful.png" : "/clock-time-learning-colorful.png"}
+                  alt={quiz.title}
+                  className="absolute inset-0 h-full w-full object-cover opacity-30"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-white/20" />
+
+                <div className="relative h-full w-full p-5 flex flex-col">
+                  <div className="flex items-start justify-between">
+                    <div className="bg-secondary text-secondary-foreground rounded-lg p-2 shadow">
+                      <Brain className="h-5 w-5" />
+                    </div>
+                    <Badge className={getLevelColor(quiz.level)}>{getLevelText(quiz.level)}</Badge>
                   </div>
-                  <Badge className={getLevelColor(quiz.level)}>{getLevelText(quiz.level)}</Badge>
+
+                  <div className="mt-auto space-y-2">
+                    <CardTitle className="text-lg group-hover:text-secondary transition-colors line-clamp-2">
+                      {quiz.title}
+                    </CardTitle>
+                    <CardDescription className="text-sm line-clamp-2">{quiz.description}</CardDescription>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        {quiz.questions.length}問
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />約{Math.ceil(quiz.questions.length * 1.5)}分
+                      </div>
+                    </div>
+                    <Button variant="secondary" className="w-full h-10" onClick={() => handleStartQuiz(quiz.id)}>
+                      挑戦する
+                    </Button>
+                  </div>
                 </div>
-                <CardTitle className="text-lg group-hover:text-secondary transition-colors">{quiz.title}</CardTitle>
-                <CardDescription className="text-sm">{quiz.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    {quiz.questions.length}問
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />約{Math.ceil(quiz.questions.length * 1.5)}分
-                  </div>
-                </div>
-                <Button variant="secondary" className="w-full h-10" onClick={() => handleStartQuiz(quiz.id)}>
-                  挑戦する
-                </Button>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>

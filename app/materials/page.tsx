@@ -184,47 +184,49 @@ export default function MaterialsPage() {
           {filteredMaterials.map((material) => (
             <Card
               key={material.id}
-              className="hover:shadow-lg transition-shadow cursor-pointer border-0 bg-card/80 backdrop-blur group"
+              className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all cursor-pointer"
               onClick={() => handleOpenMaterial(material.id)}
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="bg-primary/10 rounded-lg p-3 mb-3">
-                    <BookOpen className="h-6 w-6 text-primary" />
+              <div className="relative aspect-square">
+                <img
+                  src={material.thumbnailUrl || "/clock-time-learning-colorful.png"}
+                  alt={material.title}
+                  className="absolute inset-0 h-full w-full object-cover opacity-30"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-white/20" />
+
+                <div className="relative h-full w-full p-5 flex flex-col">
+                  <div className="flex items-start justify-between">
+                    <div className="bg-primary text-primary-foreground rounded-lg p-2 shadow">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      {completedIds.includes(material.id) && (
+                        <Badge variant="secondary" className="gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> 完了
+                        </Badge>
+                      )}
+                      <Badge className={getLevelColor(material.level)}>{getLevelText(material.level)}</Badge>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    {completedIds.includes(material.id) && (
-                      <Badge variant="secondary" className="gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> 完了
-                      </Badge>
-                    )}
-                    <Badge className={getLevelColor(material.level)}>{getLevelText(material.level)}</Badge>
+
+                  <div className="mt-auto space-y-2">
+                    <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-2">
+                      {material.title}
+                    </CardTitle>
+                    <CardDescription className="text-sm line-clamp-2">{material.description}</CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {new Date(material.updatedAt).toLocaleDateString("ja-JP")}
+                      </div>
+                      <Button size="sm" className="h-8">
+                        開く
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <CardTitle className="text-lg group-hover:text-primary transition-colors">{material.title}</CardTitle>
-                <CardDescription className="text-sm">{material.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {material.grade}年生
-                  </Badge>
-                  {material.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {new Date(material.updatedAt).toLocaleDateString("ja-JP")}
-                  </div>
-                  <Button size="sm" className="h-8">
-                    開く
-                  </Button>
-                </div>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>

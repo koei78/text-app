@@ -38,7 +38,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-amber-50 to-indigo-50">
+    <div className="min-h-screen bg-white">
       <header className="bg-card/80 backdrop-blur border-b shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
