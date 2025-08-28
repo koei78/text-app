@@ -16,6 +16,7 @@ export default function MaterialDetailPage() {
   const { user } = useAuthStore()
   const [completing, setCompleting] = useState(false)
   const [completed, setCompleted] = useState(false)
+  const [fetched, setFetched] = useState<any | null>(null)
 
   const materialId = params.id as string
 
@@ -24,14 +25,27 @@ export default function MaterialDetailPage() {
   }, [initializeData])
 
   const material = useMemo(() => {
-    return materials.find((m) => m.id === materialId)
+    return materials.find((m) => m.id === materialId) || fetched || null
+  }, [materials, materialId, fetched])
+
+  // Fetch material by id if not present in store (direct access)
+  useEffect(() => {
+    if (materials.find((m) => m.id === materialId)) return
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/materials/${materialId}`, { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        if (json?.material) setFetched(json.material)
+      } catch {}
+    })()
   }, [materials, materialId])
 
   useEffect(() => {
     const check = async () => {
       try {
         if (!user?.email) return
-        const res = await fetch(`/api/students/completions?email=${encodeURIComponent(user.email)}`)
+        const res = await fetch(`/api/students/completions?email=${encodeURIComponent(user.email)}`, { cache: "no-store" })
         if (!res.ok) return
         const json = await res.json()
         if (Array.isArray(json.completedIds)) setCompleted(json.completedIds.includes(materialId))
