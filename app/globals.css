@@ -1,0 +1,127 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated to child-friendly color palette */
+  --background: #fefce8; /* Light amber background */
+  --foreground: #374151; /* Dark gray text */
+  --card: #ffffff; /* White cards */
+  --card-foreground: #374151; /* Dark text on cards */
+  --popover: #ffffff; /* White popovers */
+  --popover-foreground: #374151; /* Dark text on popovers */
+  --primary: #d97706; /* Warm amber primary */
+  --primary-foreground: #ffffff; /* White text on primary */
+  --secondary: #6366f1; /* Playful indigo secondary */
+  --secondary-foreground: #ffffff; /* White text on secondary */
+  --muted: #f8fafc; /* Light gray muted */
+  --muted-foreground: #6b7280; /* Medium gray muted text */
+  --accent: #6366f1; /* Indigo accent */
+  --accent-foreground: #ffffff; /* White text on accent */
+  --destructive: #ef4444; /* Red for destructive actions */
+  --destructive-foreground: #ffffff; /* White text on destructive */
+  --border: #d1d5db; /* Light gray borders */
+  --input: #ffffff; /* White input fields */
+  --ring: rgba(99, 102, 241, 0.5); /* Soft indigo focus ring */
+  --chart-1: #d97706; /* Amber chart color */
+  --chart-2: #6366f1; /* Indigo chart color */
+  --chart-3: #10b981; /* Emerald chart color */
+  --chart-4: #f59e0b; /* Yellow chart color */
+  --chart-5: #8b5cf6; /* Purple chart color */
+  --radius: 1rem; /* Larger radius for child-friendly rounded corners */
+  --sidebar: #ffffff; /* White sidebar */
+  --sidebar-foreground: #374151; /* Dark text in sidebar */
+  --sidebar-primary: #d97706; /* Amber sidebar primary */
+  --sidebar-primary-foreground: #ffffff; /* White text on sidebar primary */
+  --sidebar-accent: #f8fafc; /* Light sidebar accent */
+  --sidebar-accent-foreground: #374151; /* Dark text on sidebar accent */
+  --sidebar-border: #d1d5db; /* Light border for sidebar */
+  --sidebar-ring: rgba(99, 102, 241, 0.5); /* Soft focus ring for sidebar */
+}
+
+.dark {
+  /* Keeping dark mode but with warmer tones */
+  --background: #1f2937; /* Dark background */
+  --foreground: #f9fafb; /* Light text */
+  --card: #374151; /* Dark cards */
+  --card-foreground: #f9fafb; /* Light text on cards */
+  --popover: #374151; /* Dark popovers */
+  --popover-foreground: #f9fafb; /* Light text on popovers */
+  --primary: #f59e0b; /* Brighter amber for dark mode */
+  --primary-foreground: #1f2937; /* Dark text on primary */
+  --secondary: #818cf8; /* Lighter indigo for dark mode */
+  --secondary-foreground: #1f2937; /* Dark text on secondary */
+  --muted: #4b5563; /* Medium gray muted */
+  --muted-foreground: #9ca3af; /* Light gray muted text */
+  --accent: #818cf8; /* Light indigo accent */
+  --accent-foreground: #1f2937; /* Dark text on accent */
+  --destructive: #f87171; /* Light red for dark mode */
+  --destructive-foreground: #1f2937; /* Dark text on destructive */
+  --border: #4b5563; /* Medium gray borders */
+  --input: #374151; /* Dark input fields */
+  --ring: rgba(129, 140, 248, 0.5); /* Soft light indigo focus ring */
+  --chart-1: #f59e0b; /* Bright amber chart */
+  --chart-2: #818cf8; /* Light indigo chart */
+  --chart-3: #34d399; /* Light emerald chart */
+  --chart-4: #fbbf24; /* Light yellow chart */
+  --chart-5: #a78bfa; /* Light purple chart */
+  --sidebar: #374151; /* Dark sidebar */
+  --sidebar-foreground: #f9fafb; /* Light text in sidebar */
+  --sidebar-primary: #f59e0b; /* Bright amber sidebar primary */
+  --sidebar-primary-foreground: #1f2937; /* Dark text on sidebar primary */
+  --sidebar-accent: #4b5563; /* Medium gray sidebar accent */
+  --sidebar-accent-foreground: #f9fafb; /* Light text on sidebar accent */
+  --sidebar-border: #4b5563; /* Medium gray border for sidebar */
+  --sidebar-ring: rgba(129, 140, 248, 0.5); /* Soft focus ring for sidebar */
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
