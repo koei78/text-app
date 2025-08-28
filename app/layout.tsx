@@ -6,7 +6,7 @@ import { RouteGuard } from "@/components/route-guard"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "きらきらスクール - 小学生向けオンライン学習",
+  title: "KidCoder-Online - 小学生向けオンライン学習",
   description: "楽しく学べる小学生向けオンライン学習アプリ",
   generator: "v0.app",
 }
@@ -24,4 +24,3 @@ export default function RootLayout({
     </html>
   )
 }
-

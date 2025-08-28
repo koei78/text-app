@@ -46,7 +46,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">きらきらスクール</h1>
+            <h1 className="text-3xl font-bold text-foreground">KidCoder-Online</h1>
             <p className="text-muted-foreground mt-2">楽しく学ぼう！</p>
           </div>
         </div>

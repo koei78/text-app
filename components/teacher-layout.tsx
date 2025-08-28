@@ -39,7 +39,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
             <div className="bg-primary rounded-full p-2">
               <BookOpen className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">きらきらスクール - 管理画面</h1>
+            <h1 className="text-xl font-bold text-foreground">KidCoder-Online - 管理画面</h1>
           </div>
           <div className="flex items-center gap-4">
             <Button
@@ -113,4 +113,3 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
     </div>
   )
 }
-

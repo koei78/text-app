@@ -34,7 +34,7 @@ export default function HomePage() {
               <div className="bg-primary rounded-full p-2">
                 <BookOpen className="h-6 w-6 text-primary-foreground" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">きらきらスクール</h1>
+              <h1 className="text-xl font-bold text-foreground">KidCoder-Online</h1>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-center">
@@ -79,7 +79,7 @@ export default function HomePage() {
             <div className="bg-primary rounded-full p-2">
               <BookOpen className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">きらきらスクール</h1>
+            <h1 className="text-xl font-bold text-foreground">KidCoder-Online</h1>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-center">

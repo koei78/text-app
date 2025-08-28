@@ -44,6 +44,7 @@ export default function ChatPage() {
     }
     // Fallback (kept for safety)
     return { email: "student@example.com", name: "生徒" }
+    
   }, [user, searchParams])
 
   useEffect(() => {
