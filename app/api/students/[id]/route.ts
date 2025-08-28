@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase/server"
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
-    const { data, error } = await supabase.from("students").select("*").eq("id", params.id).single()
+    const { id } = await params
+    const { data, error } = await supabase.from("students").select("*").eq("id", id).single()
     if (error) return NextResponse.json({ error: error.message }, { status: 404 })
     const student = {
       id: data.id,
@@ -21,9 +22,10 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
+    const { id } = await params
     const body = await request.json()
     const now = new Date().toISOString()
     const { data, error } = await supabase
@@ -35,7 +37,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         parentcontact: body.parentContact ?? null,
         updatedat: now,
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select("*")
       .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -54,10 +56,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
-    const { error } = await supabase.from("students").delete().eq("id", params.id)
+    const { id } = await params
+    const { error } = await supabase.from("students").delete().eq("id", id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })
   } catch (e: any) {

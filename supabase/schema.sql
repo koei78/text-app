@@ -146,6 +146,7 @@ drop policy if exists "quiz_questions_all" on public.quiz_questions;
 create policy "quiz_questions_all" on public.quiz_questions for all to authenticated using (true) with check (true);
 
 drop policy if exists "quiz_attempts_select_insert" on public.quiz_attempts;
+drop policy if exists "quiz_attempts_insert" on public.quiz_attempts;
 create policy "quiz_attempts_select_insert" on public.quiz_attempts for select to authenticated using (true);
 create policy "quiz_attempts_insert" on public.quiz_attempts for insert to authenticated with check (true);
 
@@ -166,3 +167,61 @@ on public.messages
 for delete
 to authenticated
 using (true);
+
+-- Teachers table (for role resolution and display)
+create table if not exists public.teachers (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null unique,
+  auth_user_id uuid,
+  createdAt timestamptz not null default now(),
+  updatedAt timestamptz not null default now()
+);
+
+alter table public.teachers enable row level security;
+
+drop policy if exists "teachers_select_all" on public.teachers;
+drop policy if exists "teachers_insert_all" on public.teachers;
+drop policy if exists "teachers_update_all" on public.teachers;
+drop policy if exists "teachers_delete_all" on public.teachers;
+
+-- Demo-friendly policies (tighten in production)
+create policy "teachers_select_all" on public.teachers for select to authenticated using (true);
+create policy "teachers_insert_all" on public.teachers for insert to authenticated with check (true);
+create policy "teachers_update_all" on public.teachers for update to authenticated using (true);
+create policy "teachers_delete_all" on public.teachers for delete to authenticated using (true);
+
+-- Student material preferences (per-student display mode)
+create table if not exists public.student_material_prefs (
+  student_email text primary key,
+  mode text not null check (mode in ('all','none','custom')),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.student_material_prefs enable row level security;
+drop policy if exists "smp_select_all" on public.student_material_prefs;
+drop policy if exists "smp_upsert_all" on public.student_material_prefs;
+drop policy if exists "smp_delete_all" on public.student_material_prefs;
+create policy "smp_select_all" on public.student_material_prefs for select to authenticated using (true);
+create policy "smp_upsert_all" on public.student_material_prefs for insert to authenticated with check (true);
+create policy "smp_upsert_all_update" on public.student_material_prefs for update to authenticated using (true);
+create policy "smp_delete_all" on public.student_material_prefs for delete to authenticated using (true);
+
+-- Per-student per-material visibility overrides
+create table if not exists public.material_visibility (
+  material_id uuid not null references public.materials(id) on delete cascade,
+  student_email text not null,
+  visible boolean not null default false,
+  updated_at timestamptz not null default now(),
+  primary key (material_id, student_email)
+);
+
+alter table public.material_visibility enable row level security;
+drop policy if exists "mv_select_all" on public.material_visibility;
+drop policy if exists "mv_upsert_all" on public.material_visibility;
+drop policy if exists "mv_upsert_all_update" on public.material_visibility;
+drop policy if exists "mv_delete_all" on public.material_visibility;
+create policy "mv_select_all" on public.material_visibility for select to authenticated using (true);
+create policy "mv_upsert_all" on public.material_visibility for insert to authenticated with check (true);
+create policy "mv_upsert_all_update" on public.material_visibility for update to authenticated using (true);
+create policy "mv_delete_all" on public.material_visibility for delete to authenticated using (true);

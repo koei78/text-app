@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { TeacherLayout } from "@/components/teacher-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ type Draft = Omit<Student, "id" | "createdAt" | "updatedAt"> & { id?: string }
 
 export default function StudentsPage() {
   const { user } = useAuthStore()
+  const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>("")
@@ -176,11 +178,7 @@ export default function StudentsPage() {
                       <td className="py-2">{s.email}</td>
                       <td className="py-2">{s.parentContact}</td>
                       <td className="py-2 text-right space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => (window.location.href = `/admin/students/${s.id}/materials`)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => router.push(`/admin/students/${s.id}/materials`)}>
                           公開教材
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => startEdit(s)}>編集</Button>

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase/server"
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
-    const { data, error } = await supabase.from("materials").select("*").eq("id", params.id).single()
+    const { id } = await params
+    const { data, error } = await supabase.from("materials").select("*").eq("id", id).single()
     if (error) return NextResponse.json({ error: error.message }, { status: 404 })
     const m = data as any
     const material = {
@@ -25,9 +26,10 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
+    const { id } = await params
     const body = await req.json()
     const now = new Date().toISOString()
     const payload = {
@@ -40,7 +42,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       description: body.description ?? null,
       updatedat: now,
     }
-    const { error } = await supabase.from("materials").update(payload).eq("id", params.id)
+    const { error } = await supabase.from("materials").update(payload).eq("id", id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
@@ -48,14 +50,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
-    const { error } = await supabase.from("materials").delete().eq("id", params.id)
+    const { id } = await params
+    const { error } = await supabase.from("materials").delete().eq("id", id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })
   }
 }
-

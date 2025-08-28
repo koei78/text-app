@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase/server"
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabaseServer()
-    const { data: quiz, error: qErr } = await supabase.from("quizzes").select("*").eq("id", params.id).single()
+    const { id } = await params
+    const { data: quiz, error: qErr } = await supabase.from("quizzes").select("*").eq("id", id).single()
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 404 })
     const { data: qs, error: qsErr } = await supabase
       .from("quiz_questions")
       .select("*")
-      .eq("quiz_id", params.id)
+      .eq("quiz_id", id)
       .order("idx", { ascending: true })
     if (qsErr) return NextResponse.json({ error: qsErr.message }, { status: 500 })
     const questions = (qs ?? []).map((r: any) => {
@@ -38,4 +39,3 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })
   }
 }
-

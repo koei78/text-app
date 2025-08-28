@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { getSupabaseServer } from "@/lib/supabase/server"
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = getSupabaseServer()
+  const { id } = await params
   // resolve student email
-  const { data: s, error: e1 } = await supabase.from("students").select("email").eq("id", params.id).single()
+  const { data: s, error: e1 } = await supabase.from("students").select("email").eq("id", id).single()
   if (e1 || !s) return NextResponse.json({ error: e1?.message || "student not found" }, { status: 404 })
   const email = (s as any).email
   // load mode
@@ -27,13 +28,14 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   return NextResponse.json({ email, mode, selectedIds })
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = getSupabaseServer()
+  const { id } = await params
   const body = await req.json()
   const mode = (body?.mode as string) || "custom"
   const selected: string[] = Array.isArray(body?.selectedIds) ? body.selectedIds : []
   // resolve student email
-  const { data: s, error: e1 } = await supabase.from("students").select("email").eq("id", params.id).single()
+  const { data: s, error: e1 } = await supabase.from("students").select("email").eq("id", id).single()
   if (e1 || !s) return NextResponse.json({ error: e1?.message || "student not found" }, { status: 404 })
   const email = (s as any).email
 

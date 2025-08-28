@@ -44,12 +44,51 @@ export const useAuthStore = create<AuthState>()(
           const supabase = getSupabaseClient()
           const { data, error } = await supabase.auth.signInWithPassword({ email, password })
           if (!error && data?.user) {
-            // Map teacher by email, others as student
-            const role: User["role"] = email === "teacher@example.com" ? "teacher" : "student"
+            // Determine role from demo email, Supabase metadata, teachers table, or env allowlist
+            let role: User["role"] = email === "teacher@example.com" ? "teacher" : "student"
+            try {
+              const u: any = data.user
+              const meta = (u?.user_metadata ?? {}) as Record<string, any>
+              const appm = (u?.app_metadata ?? {}) as Record<string, any>
+              const metaRole = (meta.role ?? appm.role) as string | undefined
+              const metaRoles = (meta.roles ?? appm.roles) as string[] | undefined
+              if (metaRole === "teacher" || (Array.isArray(metaRoles) && metaRoles.includes("teacher"))) {
+                role = "teacher"
+              } else {
+                // Teachers table check
+                try {
+                  const { data: trows } = await supabase
+                    .from("teachers")
+                    .select("name,email")
+                    .eq("email", email)
+                    .limit(1)
+                  if (trows && trows.length > 0) {
+                    role = "teacher"
+                  } else {
+                    // Env allowlist fallback
+                    const allow = (process.env.NEXT_PUBLIC_TEACHER_EMAILS || "")
+                      .split(",")
+                      .map((s) => s.trim().toLowerCase())
+                      .filter(Boolean)
+                    if (allow.includes(email.toLowerCase())) role = "teacher"
+                  }
+                } catch {
+                  // ignore
+                }
+              }
+            } catch {
+              // fall back to default student
+            }
             // Try to resolve display name from students table
             let display = email
-            const { data: rows } = await supabase.from("students").select("name").eq("email", email).limit(1)
-            if (rows && rows[0]?.name) display = rows[0].name
+            const { data: srows } = await supabase.from("students").select("name").eq("email", email).limit(1)
+            if (srows && srows[0]?.name) display = srows[0].name
+            if (role === "teacher") {
+              try {
+                const { data: trows } = await supabase.from("teachers").select("name").eq("email", email).limit(1)
+                if (trows && trows[0]?.name) display = trows[0].name
+              } catch {}
+            }
             set({ user: { id: email, name: role === "teacher" ? "田中先生" : display, email, role } })
             return true
           }
