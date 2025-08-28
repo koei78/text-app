@@ -83,11 +83,12 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">こんにちは</p>
+              <p className="text-sm text-muted-foreground">こんmにちは</p>
               <p className="font-semibold text-foreground">{user.name}さん</p>
             </div>
             {user.role === "teacher" && <Badge variant="secondary">先生モード</Badge>}
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <Button variant="ghost" size="sm" onClick={handleLogout}> 
+            
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
