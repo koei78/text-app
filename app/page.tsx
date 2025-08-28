@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, Brain, MessageCircle, LogOut } from "lucide-react"
 import { useEffect } from "react"
+import { StudentLayout } from "@/components/student-layout"
 
 export default function HomePage() {
   const { user, logout } = useAuthStore()
@@ -72,30 +73,8 @@ export default function HomePage() {
 
   // Student view
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-amber-50 to-indigo-50">
-      <header className="bg-card/80 backdrop-blur border-b shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary rounded-full p-2">
-              <BookOpen className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground">KidCoder-Online</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">こんmにちは</p>
-              <p className="font-semibold text-foreground">{user.name}さん</p>
-            </div>
-            {user.role === "teacher" && <Badge variant="secondary">先生モード</Badge>}
-            <Button variant="ghost" size="sm" onClick={handleLogout}> 
-            
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <StudentLayout>
+      <div className="max-w-4xl mx-auto px-0 py-8 space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold text-foreground">今日も楽しく学ぼう！</h2>
           <p className="text-muted-foreground">やりたいことを選んでね</p>
@@ -133,7 +112,7 @@ export default function HomePage() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </StudentLayout>
   )
 }

@@ -3,8 +3,14 @@
 import type React from "react"
 import { useAuthStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, Users, MessageCircle, BarChart3, LogOut, Home } from "lucide-react"
+import { BookOpen, Users, MessageCircle, BarChart3, LogOut, Home, Menu as MenuIcon } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -41,75 +47,46 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
             </div>
             <h1 className="text-xl font-bold text-foreground">KidCoder-Online - 管理画面</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/")}
-              className="gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <Home className="h-4 w-4" />
-              生徒画面
-            </Button>
-            <div className="text-center hidden sm:block">
-              <p className="text-sm text-muted-foreground">こんにちは</p>
-              <p className="font-semibold text-foreground">{user.name}さん</p>
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-3 pr-2">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">こんにちは</p>
+                <p className="font-semibold text-foreground">{user.name}さん</p>
+              </div>
+              <Badge variant="secondary" className="bg-secondary text-secondary-foreground">先生モード</Badge>
             </div>
-            <Badge variant="secondary" className="bg-secondary text-secondary-foreground">先生モード</Badge>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <MenuIcon className="h-4 w-4" /> メニュー
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => router.push("/")}> 
+                  <Home className="h-4 w-4" /> 生徒画面に戻る
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/admin/dashboard")} className={cn(pathname === "/admin/dashboard" && "bg-primary/10 text-primary")}> 
+                  <BarChart3 className="h-4 w-4" /> ダッシュボード
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/admin/materials")} className={cn(pathname === "/admin/materials" && "bg-primary/10 text-primary")}> 
+                  <BookOpen className="h-4 w-4" /> 教材管理
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/admin/students")} className={cn(pathname === "/admin/students" && "bg-primary/10 text-primary")}> 
+                  <Users className="h-4 w-4" /> 生徒管理
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/admin/chats")} className={cn(pathname === "/admin/chats" && "bg-primary/10 text-primary")}> 
+                  <MessageCircle className="h-4 w-4" /> チャット管理
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <LogOut className="h-4 w-4" /> ログアウト
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
-
-      {/* Bottom Navigation (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur border-t shadow-lg sm:hidden">
-        <div className="flex items-center justify-around py-2">
-          {items.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.path
-            return (
-              <button
-                key={item.path}
-                onClick={() => router.push(item.path)}
-                className={cn(
-                  "flex flex-col items-center gap-1 p-3 rounded-lg transition-colors",
-                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </nav>
-
-      {/* Sidebar (Desktop) */}
-      <aside className="fixed left-4 top-1/2 -translate-y-1/2 hidden lg:block">
-        <div className="bg-card/80 backdrop-blur rounded-2xl shadow-lg p-4 space-y-2">
-          {items.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.path
-            return (
-              <button
-                key={item.path}
-                onClick={() => router.push(item.path)}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-xl transition-colors w-full text-left",
-                  isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </aside>
     </div>
   )
 }
