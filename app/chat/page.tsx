@@ -32,7 +32,7 @@ export default function ChatPage() {
   const partner = useMemo(() => {
     if (!user) return null
     if (user.role === "student") {
-      return { email: "teacher@example.com", name: "田中先生" }
+      return { email: "teacher@example.com", name: "田先生" }
     }
     // teacher side: allow selecting partner via query params
     const emailFromParam = searchParams?.get("partner") || undefined
