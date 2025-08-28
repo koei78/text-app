@@ -54,7 +54,7 @@ export default function LoginPage() {
         <Card className="shadow-lg border-0 bg-card/80 backdrop-blur">
           <CardHeader className="text-center">
             <CardTitle className="text-xl">ログイン</CardTitle>
-            <CardDescription>デモパスワード: pass1234</CardDescription>
+            <CardDescription>メールアドレスとパスワードを入力してください</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,20 +71,10 @@ export default function LoginPage() {
                 {isLoading ? "ログイン中..." : "ログイン"}
               </Button>
             </form>
-
-            <div className="mt-6 space-y-2">
-              <div className="text-center text-sm text-muted-foreground">デモアカウント</div>
-              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => handleDemo("student@example.com")} disabled={isLoading}>
-                <BookOpen className="h-5 w-5 text-primary" /> 生徒としてログイン
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => handleDemo("teacher@example.com")} disabled={isLoading}>
-                <Users className="h-5 w-5 text-secondary" /> 先生としてログイン
-              </Button>
-            </div>
+            {/* デモアカウントUIは削除し、通常ログインのみ */}
           </CardContent>
         </Card>
       </div>
     </div>
   )
 }
-

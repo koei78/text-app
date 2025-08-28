@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { User, Material, Quiz, QuizResult, ChatMessage } from "./types"
-import { MOCK_MATERIALS, MOCK_QUIZZES, MOCK_CHAT_MESSAGES } from "./mock-data"
+// Demoデータは廃止し、API/Supabaseに依存します
 import { getSupabaseClient } from "@/lib/supabase/client"
 
 interface AuthState {
@@ -131,10 +131,7 @@ export const useDataStore = create<DataState>()(
       markMessageAsRead: (messageId) =>
         set((s) => ({ chatMessages: s.chatMessages.map((m) => (m.id === messageId ? { ...m, read: true } : m)) })),
       initializeData: () => {
-        const s = get()
-        if (s.materials.length === 0) {
-          set({ materials: MOCK_MATERIALS, quizzes: MOCK_QUIZZES, chatMessages: MOCK_CHAT_MESSAGES })
-        }
+        // no-op: デモデータの自動投入は行わない
       },
     }),
     { name: "data-storage" },
