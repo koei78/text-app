@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, ArrowLeft, Clock, User } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
-import { useDataStore } from "@/lib/store"
-import { useEffect, useMemo } from "react"
+import { useDataStore, useAuthStore } from "@/lib/store"
+import { useEffect, useMemo, useState } from "react"
 
 export default function MaterialDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { materials, initializeData } = useDataStore()
+  const { user } = useAuthStore()
+  const [completing, setCompleting] = useState(false)
+  const [completed, setCompleted] = useState(false)
 
   const materialId = params.id as string
 
@@ -23,6 +26,34 @@ export default function MaterialDetailPage() {
   const material = useMemo(() => {
     return materials.find((m) => m.id === materialId)
   }, [materials, materialId])
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        if (!user?.email) return
+        const res = await fetch(`/api/students/completions?email=${encodeURIComponent(user.email)}`)
+        if (!res.ok) return
+        const json = await res.json()
+        if (Array.isArray(json.completedIds)) setCompleted(json.completedIds.includes(materialId))
+      } catch {}
+    }
+    check()
+  }, [user, materialId])
+
+  const markDone = async () => {
+    if (!user?.email) return
+    setCompleting(true)
+    try {
+      const res = await fetch(`/api/materials/${materialId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      })
+      if (res.ok) setCompleted(true)
+    } finally {
+      setCompleting(false)
+    }
+  }
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -134,11 +165,15 @@ export default function MaterialDetailPage() {
             <ArrowLeft className="h-4 w-4" />
             教材一覧に戻る
           </Button>
-
-          <Button onClick={() => router.push("/quiz")} className="gap-2">
-            クイズに挑戦
-            <BookOpen className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant={completed ? "secondary" : "default"} onClick={markDone} disabled={completed || completing}>
+              {completed ? "できた！済み" : completing ? "保存中..." : "できた！"}
+            </Button>
+            <Button onClick={() => router.push("/quiz")} className="gap-2">
+              クイズに挑戦
+              <BookOpen className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </StudentLayout>

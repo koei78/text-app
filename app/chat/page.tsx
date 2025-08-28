@@ -16,6 +16,7 @@ type Msg = {
   from: string
   to: string
   text: string
+  imageUrl?: string
   createdAt: string
   read: boolean
 }
@@ -24,6 +25,7 @@ export default function ChatPage() {
   const { user } = useAuthStore()
   const searchParams = useSearchParams()
   const [message, setMessage] = useState("")
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>("")
@@ -57,7 +59,7 @@ export default function ChatPage() {
       const filter = `and(sender_email.eq.${user.email},receiver_email.eq.${partner.email}),and(sender_email.eq.${partner.email},receiver_email.eq.${user.email})`
       const { data, error } = await supabase
         .from("messages")
-        .select("id,sender_email,receiver_email,text,created_at,read")
+        .select("id,sender_email,receiver_email,text,image_url,created_at,read")
         .or(filter)
         .order("created_at", { ascending: true })
       if (error) {
@@ -69,6 +71,7 @@ export default function ChatPage() {
             from: r.sender_email,
             to: r.receiver_email,
             text: r.text,
+            imageUrl: (r as any).image_url ?? undefined,
             createdAt: r.created_at,
             read: r.read,
           })),
@@ -88,7 +91,7 @@ export default function ChatPage() {
         ) {
           setMsgs((prev) => [
             ...prev,
-            { id: r.id, from: r.sender_email, to: r.receiver_email, text: r.text, createdAt: r.created_at, read: r.read },
+            { id: r.id, from: r.sender_email, to: r.receiver_email, text: r.text, imageUrl: r.image_url ?? undefined, createdAt: r.created_at, read: r.read },
           ])
           // auto-mark as read if this message is addressed to me and chat is open
           if (r.receiver_email === user.email && !r.read) {
@@ -103,7 +106,7 @@ export default function ChatPage() {
           (r.sender_email === partner.email && r.receiver_email === user.email)
         ) {
           setMsgs((prev) =>
-            prev.map((m) => (m.id === r.id ? { id: r.id, from: r.sender_email, to: r.receiver_email, text: r.text, createdAt: r.created_at, read: r.read } : m)),
+            prev.map((m) => (m.id === r.id ? { id: r.id, from: r.sender_email, to: r.receiver_email, text: r.text, imageUrl: r.image_url ?? undefined, createdAt: r.created_at, read: r.read } : m)),
           )
         }
       })
@@ -113,7 +116,7 @@ export default function ChatPage() {
     const interval = setInterval(() => {
       supabase
         .from("messages")
-        .select("id,sender_email,receiver_email,text,created_at,read")
+        .select("id,sender_email,receiver_email,text,image_url,created_at,read")
         .or(
           `and(sender_email.eq.${user.email},receiver_email.eq.${partner.email}),and(sender_email.eq.${partner.email},receiver_email.eq.${user.email})`,
         )
@@ -126,6 +129,7 @@ export default function ChatPage() {
               from: r.sender_email,
               to: r.receiver_email,
               text: r.text,
+              imageUrl: (r as any).image_url ?? undefined,
               createdAt: r.created_at,
               read: r.read,
             })),
@@ -174,11 +178,23 @@ export default function ChatPage() {
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!message.trim()) return
+    if (!message.trim() && !imageFile) return
     const supabase = getSupabaseClient()
+    let image_url: string | undefined
+    if (imageFile) {
+      const file = imageFile
+      const ext = file.name.split('.').pop() || 'png'
+      const path = `${user.email.replace(/[^a-zA-Z0-9]/g, '_')}/${Date.now()}.${ext}`
+      const { data: up, error: upErr } = await (supabase as any).storage.from('chat-images').upload(path, file, { upsert: true })
+      if (!upErr) {
+        const { data: pub } = (supabase as any).storage.from('chat-images').getPublicUrl(path)
+        image_url = pub?.publicUrl
+      }
+    }
     const text = message.trim()
     setMessage("")
-    await supabase.from("messages").insert({ sender_email: user.email, receiver_email: partner.email, text })
+    setImageFile(null)
+    await supabase.from("messages").insert({ sender_email: user.email, receiver_email: partner.email, text, image_url })
   }
 
   return (
@@ -248,7 +264,10 @@ export default function ChatPage() {
                       )}
                       <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                         <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isMe ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-                          <p className="text-sm leading-relaxed">{m.text}</p>
+                          {m.imageUrl && (
+                            <img src={m.imageUrl} alt="image" className="rounded-md mb-2 max-h-60 object-contain" />
+                          )}
+                          {m.text && <p className="text-sm leading-relaxed">{m.text}</p>}
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs opacity-70">{formatTime(m.createdAt)}</span>
                             {isMe && <div className="text-xs opacity-70">{m.read ? "既読" : "未読"}</div>}

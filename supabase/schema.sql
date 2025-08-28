@@ -201,6 +201,7 @@ create table if not exists public.student_material_prefs (
 alter table public.student_material_prefs enable row level security;
 drop policy if exists "smp_select_all" on public.student_material_prefs;
 drop policy if exists "smp_upsert_all" on public.student_material_prefs;
+drop policy if exists "smp_upsert_all_update" on public.student_material_prefs;
 drop policy if exists "smp_delete_all" on public.student_material_prefs;
 create policy "smp_select_all" on public.student_material_prefs for select to authenticated using (true);
 create policy "smp_upsert_all" on public.student_material_prefs for insert to authenticated with check (true);
@@ -225,3 +226,30 @@ create policy "mv_select_all" on public.material_visibility for select to authen
 create policy "mv_upsert_all" on public.material_visibility for insert to authenticated with check (true);
 create policy "mv_upsert_all_update" on public.material_visibility for update to authenticated using (true);
 create policy "mv_delete_all" on public.material_visibility for delete to authenticated using (true);
+
+-- Material completions (student finishes a material)
+create table if not exists public.material_completions (
+  material_id uuid not null references public.materials(id) on delete cascade,
+  student_email text not null,
+  completed_at timestamptz not null default now(),
+  primary key (material_id, student_email)
+);
+
+alter table public.material_completions enable row level security;
+drop policy if exists "mc_select_all" on public.material_completions;
+drop policy if exists "mc_upsert_all" on public.material_completions;
+drop policy if exists "mc_delete_all" on public.material_completions;
+create policy "mc_select_all" on public.material_completions for select to authenticated using (true);
+create policy "mc_upsert_all" on public.material_completions for insert to authenticated with check (true);
+create policy "mc_delete_all" on public.material_completions for delete to authenticated using (true);
+
+-- Messages: optional image URL support
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'messages' and column_name = 'image_url'
+  ) then
+    alter table public.messages add column image_url text;
+  end if;
+end $$;

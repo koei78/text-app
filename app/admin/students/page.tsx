@@ -181,6 +181,9 @@ export default function StudentsPage() {
                         <Button size="sm" variant="outline" onClick={() => router.push(`/admin/students/${s.id}/materials`)}>
                           公開教材
                         </Button>
+                        <Button size="sm" variant="outline" onClick={() => router.push(`/admin/students/${s.id}/progress`)}>
+                          進捗
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => startEdit(s)}>編集</Button>
                         <Button size="sm" variant="destructive" onClick={() => remove(s.id)}>
                           <Trash2 className="h-4 w-4" />

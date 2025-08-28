@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BookOpen, Search, Filter, Clock } from "lucide-react"
+import { BookOpen, Search, Filter, Clock, CheckCircle2 } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useDataStore, useAuthStore } from "@/lib/store"
@@ -21,6 +21,8 @@ export default function MaterialsPage() {
   const { materials, initializeData, setMaterials } = useDataStore() as any
   const { user } = useAuthStore()
   const router = useRouter()
+  const [completedIds, setCompletedIds] = useState<string[]>([])
+  const [showOnlyUncompleted, setShowOnlyUncompleted] = useState(false)
 
   useEffect(() => {
     initializeData()
@@ -39,8 +41,22 @@ export default function MaterialsPage() {
     loadForStudent()
   }, [user, setMaterials])
 
+  useEffect(() => {
+    const loadCompletions = async () => {
+      try {
+        if (!user?.email) return
+        const res = await fetch(`/api/students/completions?email=${encodeURIComponent(user.email)}`, { cache: "no-store" })
+        if (!res.ok) return
+        const { completedIds } = await res.json()
+        if (Array.isArray(completedIds)) setCompletedIds(completedIds)
+      } catch {}
+    }
+    loadCompletions()
+  }, [user])
+
   const filteredMaterials = useMemo(() => {
     return materials.filter((material) => {
+      if (showOnlyUncompleted && completedIds.includes(material.id)) return false
       const matchesSearch =
         material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -121,6 +137,10 @@ export default function MaterialsPage() {
                   <Filter className="h-4 w-4" />
                   絞り込み
                 </Button>
+                <Button variant={showOnlyUncompleted ? "secondary" : "outline"} className="h-12 gap-2" onClick={() => setShowOnlyUncompleted((v) => !v)}>
+                  <CheckCircle2 className="h-4 w-4" />
+                  未完了のみ
+                </Button>
               </div>
 
               {showFilters && (
@@ -172,7 +192,14 @@ export default function MaterialsPage() {
                   <div className="bg-primary/10 rounded-lg p-3 mb-3">
                     <BookOpen className="h-6 w-6 text-primary" />
                   </div>
-                  <Badge className={getLevelColor(material.level)}>{getLevelText(material.level)}</Badge>
+                  <div className="flex gap-2 items-center">
+                    {completedIds.includes(material.id) && (
+                      <Badge variant="secondary" className="gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> 完了
+                      </Badge>
+                    )}
+                    <Badge className={getLevelColor(material.level)}>{getLevelText(material.level)}</Badge>
+                  </div>
                 </div>
                 <CardTitle className="text-lg group-hover:text-primary transition-colors">{material.title}</CardTitle>
                 <CardDescription className="text-sm">{material.description}</CardDescription>
