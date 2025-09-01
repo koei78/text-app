@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, Send, User, Clock } from "lucide-react"
+import { MessageCircle, Send, User, Clock, Link as LinkIcon, Image as ImageIcon, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/lib/store"
 import { getSupabaseClient } from "@/lib/supabase/client"
 
@@ -21,6 +21,66 @@ type Msg = {
   read: boolean
 }
 
+type LinkPreview = {
+  title?: string
+  description?: string
+  image?: string
+  url?: string
+  _status?: "ok" | "loading" | "error"
+  _errorMsg?: string
+}
+
+const URL_REGEX = /(https?:\/\/[^\s<>()"\u3000]+)/gi
+
+function extractUrls(text: string): string[] {
+  const s = new Set<string>()
+  for (const m of text.matchAll(URL_REGEX)) {
+    if (m[0]) s.add(m[0])
+  }
+  return [...s]
+}
+
+function PreviewCard({ data }: { data: LinkPreview }) {
+  return (
+    <a
+      href={data.url || "#"}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block border rounded-xl bg-white/90 hover:bg-white transition p-3 mt-2 shadow-sm"
+    >
+      <div className="flex gap-3 items-start">
+        {/* サムネイル */}
+        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0">
+          {data._status === "loading" ? (
+            <Loader2 className="h-5 w-5 animate-spin opacity-60" />
+          ) : data.image ? (
+            // 画像エラー時のフォールバック
+            <img
+              src={data.image}
+              alt={data.title || data.url || "preview"}
+              className="w-full h-full object-cover"
+              onError={(e) => ((e.currentTarget.style.display = "none"))}
+            />
+          ) : (
+            <ImageIcon className="h-5 w-5 opacity-60" />
+          )}
+        </div>
+        {/* テキスト部 */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <LinkIcon className="h-3.5 w-3.5 opacity-60" />
+            <span className="text-xs text-blue-700 truncate">{data.url}</span>
+          </div>
+          <div className="font-semibold leading-tight line-clamp-2">{data.title || "タイトルなし"}</div>
+          <div className="text-xs text-muted-foreground mt-1 line-clamp-3">
+            {data._status === "error" ? `プレビュー取得に失敗しました: ${data._errorMsg ?? ""}` : (data.description || "説明はありません")}
+          </div>
+        </div>
+      </div>
+    </a>
+  )
+}
+
 export default function ChatPage() {
   const { user } = useAuthStore()
   const searchParams = useSearchParams()
@@ -31,20 +91,67 @@ export default function ChatPage() {
   const [error, setError] = useState<string>("")
   const endRef = useRef<HTMLDivElement>(null)
 
+  // ---------------- Link Preview キャッシュ ----------------
+  const [previewMap, setPreviewMap] = useState<Record<string, LinkPreview>>({})
+
+  // 未取得URLを一括フェッチ（重複防止・簡易レート制御）
+  useEffect(() => {
+    const allTexts = msgs.map((m) => m.text || "").filter(Boolean)
+    const allUrls = new Set<string>()
+    for (const t of allTexts) extractUrls(t).forEach((u) => allUrls.add(u))
+
+    const toFetch: string[] = []
+    allUrls.forEach((u) => {
+      if (!previewMap[u]) toFetch.push(u)
+    })
+
+    if (toFetch.length === 0) return
+
+    // 先にloadingで予約
+    setPreviewMap((prev) => {
+      const next = { ...prev }
+      for (const u of toFetch) next[u] = { _status: "loading", url: u }
+      return next
+    })
+
+    // 直列でも十分だが、軽く並列(最大3同時)で回す
+    const concurrency = 3
+    let index = 0
+
+    const worker = async () => {
+      while (index < toFetch.length) {
+        const myIdx = index++
+        const url = toFetch[myIdx]
+        try {
+          const r = await fetch(`/api/linkpreview?url=${encodeURIComponent(url)}`, { cache: "no-store" })
+          if (!r.ok) {
+            const txt = await r.text().catch(() => "")
+            setPreviewMap((prev) => ({ ...prev, [url]: { _status: "error", url, _errorMsg: `HTTP ${r.status} ${txt.slice(0,100)}` } }))
+            continue
+          }
+          const data = (await r.json()) as LinkPreview
+          setPreviewMap((prev) => ({ ...prev, [url]: { ...data, _status: "ok" } }))
+        } catch (e: any) {
+          setPreviewMap((prev) => ({ ...prev, [url]: { _status: "error", url, _errorMsg: String(e?.message || e) } }))
+        }
+      }
+    }
+
+    const workers = Array.from({ length: Math.min(concurrency, toFetch.length) }, () => worker())
+    Promise.all(workers).catch(() => {})
+  }, [msgs, previewMap])
+
   const partner = useMemo(() => {
     if (!user) return null
     if (user.role === "student") {
       return { email: "teacher@example.com", name: "tt先生" }
     }
-    // teacher side: allow selecting partner via query params
     const emailFromParam = searchParams?.get("partner") || undefined
     const nameFromParam = searchParams?.get("name") || undefined
     if (emailFromParam) {
       return { email: emailFromParam, name: nameFromParam || emailFromParam }
     }
-    // Fallback (kept for safety)
     return { email: "student@example.com", name: "生徒" }
-    
   }, [user, searchParams])
 
   useEffect(() => {
@@ -94,7 +201,6 @@ export default function ChatPage() {
             ...prev,
             { id: r.id, from: r.sender_email, to: r.receiver_email, text: r.text, imageUrl: r.image_url ?? undefined, createdAt: r.created_at, read: r.read },
           ])
-          // auto-mark as read if this message is addressed to me and chat is open
           if (r.receiver_email === user.email && !r.read) {
             supabase.from("messages").update({ read: true }).eq("id", r.id)
           }
@@ -113,7 +219,6 @@ export default function ChatPage() {
       })
       .subscribe()
 
-    // Fallback polling in case Realtime fails
     const interval = setInterval(() => {
       supabase
         .from("messages")
@@ -153,11 +258,9 @@ export default function ChatPage() {
       ;(async () => {
         const { error } = await supabase.from("messages").update({ read: true }).in("id", unreadIds)
         if (error) {
-          // keep local state as-is if update fails
           setError(error.message)
           return
         }
-        // optimistic local update; realtime UPDATE will sync across peers
         setMsgs((prev) => prev.map((m) => (unreadIds.includes(m.id) ? { ...m, read: true } : m)))
       })()
     }
@@ -198,36 +301,29 @@ export default function ChatPage() {
     await supabase.from("messages").insert({ sender_email: user.email, receiver_email: partner.email, text, image_url })
   }
 
-  // メッセージ本文中のURLをリンク化＋プレビュー表示
+  // メッセージ本文中のURLをリンク化 + プレビュー表示
   function renderMessageText(text: string) {
-    const urlRegex = /(https?:\/\/[^\s]+)/g
-    const urls = text.match(urlRegex)
+    const parts = text.split(URL_REGEX)
+    const urls = extractUrls(text)
     return (
       <>
-        {text.split(urlRegex).map((part, i) =>
-          urlRegex.test(part)
-            ? (
-              <a
-                key={i}
-                href={part}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline break-all block mt-1"
-              >
-                {part}
-              </a>
-            )
-            : part
-        )}
-        {/* プレビュー領域（URLがあれば） */}
-        {urls && urls.map((url, idx) => (
-          <div key={idx} className="border rounded bg-white p-2 mt-2 shadow text-xs">
-            <div className="font-bold text-blue-700 mb-1">リンクプレビュー</div>
-            <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
-              {url}
+        {parts.map((part, i) =>
+          URL_REGEX.test(part) ? (
+            <a key={`lnk-${i}`} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+              {part}
             </a>
-          </div>
-        ))}
+          ) : (
+            <span key={`txt-${i}`}>{part}</span>
+          )
+        )}
+
+        {/* プレビュー（URLごと） */}
+        {urls.map((u) => {
+          const p = previewMap[u]
+          // まだ何もない(=取得予約前)場合は出さない
+          if (!p) return null
+          return <PreviewCard key={`pv-${u}`} data={p} />
+        })}
       </>
     )
   }
@@ -274,70 +370,70 @@ export default function ChatPage() {
             </div>
           </CardHeader>
 
-          <CardContent className="p-0">
-            <div className="h-96 overflow-y-auto p-6 space-y-4">
-              {error && <div className="text-red-600 text-sm">{error}</div>}
-              {loading && <div className="text-muted-foreground text-sm">読み込み中...</div>}
-              {conversation.length === 0 && !loading ? (
-                <div className="text-center py-8">
-                  <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">まだメッセージがありません</p>
-                </div>
-              ) : (
-                conversation.map((m, i) => {
-                  const isMe = m.from === user.email
-                  const prev = conversation[i - 1]
-                  const showDate = !prev || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString()
-                  return (
-                    <div key={m.id}>
-                      {showDate && (
-                        <div className="text-center my-4">
-                          <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                            {new Date(m.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
-                          </span>
-                        </div>
-                      )}
-                      <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isMe ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-                          {m.imageUrl && (
-                            <img src={m.imageUrl} alt="image" className="rounded-md mb-2 max-h-60 object-contain" />
-                          )}
-                          {m.text && (
-                            <div className="text-sm leading-relaxed">
-                              {renderMessageText(m.text)}
+            <CardContent className="p-0">
+              <div className="h-96 overflow-y-auto p-6 space-y-4">
+                {error && <div className="text-red-600 text-sm">{error}</div>}
+                {loading && <div className="text-muted-foreground text-sm">読み込み中...</div>}
+                {conversation.length === 0 && !loading ? (
+                  <div className="text-center py-8">
+                    <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">まだメッセージがありません</p>
+                  </div>
+                ) : (
+                  conversation.map((m, i) => {
+                    const isMe = m.from === user.email
+                    const prev = conversation[i - 1]
+                    const showDate = !prev || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString()
+                    return (
+                      <div key={m.id}>
+                        {showDate && (
+                          <div className="text-center my-4">
+                            <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                              {new Date(m.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                            </span>
+                          </div>
+                        )}
+                        <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isMe ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                            {m.imageUrl && (
+                              <img src={m.imageUrl} alt="image" className="rounded-md mb-2 max-h-60 object-contain" />
+                            )}
+                            {m.text && (
+                              <div className="text-sm leading-relaxed space-y-2">
+                                {renderMessageText(m.text)}
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-xs opacity-70">{formatTime(m.createdAt)}</span>
+                              {isMe && <div className="text-xs opacity-70">{m.read ? "既読" : "未読"}</div>}
                             </div>
-                          )}
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs opacity-70">{formatTime(m.createdAt)}</span>
-                            {isMe && <div className="text-xs opacity-70">{m.read ? "既読" : "未読"}</div>}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })
-              )}
-              <div ref={endRef} />
-            </div>
-
-            <div className="border-t p-4">
-              <form onSubmit={send} className="flex gap-3">
-                <Input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="メッセージを入力..."
-                  className="flex-1 h-12"
-                />
-                <Button type="submit" size="sm" className="h-12 px-6" disabled={!message.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
-              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>Enterキーで送信</span>
+                    )
+                  })
+                )}
+                <div ref={endRef} />
               </div>
-            </div>
-          </CardContent>
+
+              <div className="border-t p-4">
+                <form onSubmit={send} className="flex gap-3">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="メッセージを入力..."
+                    className="flex-1 h-12"
+                  />
+                  <Button type="submit" size="sm" className="h-12 px-6" disabled={!message.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  <span>Enterキーで送信</span>
+                </div>
+              </div>
+            </CardContent>
         </Card>
       </div>
     </StudentLayout>
