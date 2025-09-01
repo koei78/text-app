@@ -31,7 +31,15 @@ export function StudentLayout({ children }: StudentLayoutProps) {
   if (!user) return null
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div
+      className="relative min-h-screen"
+      style={{
+        backgroundImage: 'url(/top.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       {/* Playful background blobs visible on all student pages */}
       <div className="pointer-events-none absolute -top-10 -left-12 h-56 w-56 rounded-full bg-pink-300/40 blur-3xl animate-pulse" />
       <div className="pointer-events-none absolute top-24 -right-16 h-64 w-64 rounded-full bg-indigo-300/40 blur-3xl animate-ping" />
@@ -39,17 +47,11 @@ export function StudentLayout({ children }: StudentLayoutProps) {
 
       {/* Header */}
       <header className="bg-gradient-to-r from-pink-100/70 via-amber-100/70 to-indigo-100/70 backdrop-blur border-b shadow-sm sticky top-0 z-50">
-        <div className="relative max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full overflow-hidden">    
-              <img src="/icon.png" alt="ロゴ" className="h-25 w-25 sm:h-20 sm:w-20 rounded-full object-cover" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-primary">HOMEラボ・キッズ</h1>
-          </div>
-          <div className="flex items-center gap-2">
+        <div className="relative max-w-6xl mx-auto px-4 py-4 flex items-center" style={{ position: 'relative' }}>
+          <img src="/title-pc.png" alt="HOMEラボ・キッズ ロゴ" className="h-12 sm:h-16 w-auto" style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }} />
+          <div className="flex items-center gap-2 ml-auto relative z-10">
             <div className="hidden sm:flex items-center gap-3 pr-2">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">こんにちは</p>
                 <p className="font-semibold text-foreground">{user.name}さん</p>
               </div>
               {user.role === "teacher" && (
@@ -81,9 +83,6 @@ export function StudentLayout({ children }: StudentLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {/* Fun header stickers */}
-          <div className="pointer-events-none absolute right-2 top-2 text-2xl rotate-6 select-none">🎉</div>
-          <div className="pointer-events-none absolute left-3 bottom-1 text-2xl -rotate-6 select-none">✨</div>
         </div>
       </header>
 

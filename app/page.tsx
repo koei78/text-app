@@ -83,29 +83,16 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -bottom-8 left-1/3 h-40 w-40 rounded-full bg-amber-300/40 blur-3xl animate-pulse" />
 
         {/* Hero */}
-        <div className="relative overflow-hidden rounded-3xl border shadow-sm bg-gradient-to-r from-pink-100 via-amber-100 to-indigo-100">
-          {/* Fun stickers */}
-          <div className="pointer-events-none absolute right-4 top-4 text-3xl rotate-6 select-none">🎉</div>
-          <div className="pointer-events-none absolute left-6 bottom-4 text-3xl -rotate-6 select-none">✨</div>
-          <div className="p-6 sm:p-8 space-y-4">
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className="bg-primary rounded-full p-2">
-                <BookOpen className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <h2 className="text-lg font-semibold text-foreground">ダッシュボード</h2>
-            </div>
-            <StudentDashboard />
-          </div>
-        </div>
+  {/* Hero部分を完全に削除 */}
 
 
         {/* Action Cards (square) */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Materials */}
-          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all">
+          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all" style={{ transform: 'skewX(-12deg)' }}>
             <div className="aspect-square w-full grid grid-rows-[1fr_auto] p-5">
               <div className="relative overflow-hidden min-h-0">
-                <img src="/マイクロビットimg.png" alt="教材" className="absolute inset-0 m-auto h-60 w-full object-contain " />
+                <img src="/マイクロビットimg.png" alt="教材" className="absolute inset-0 m-auto h-60 w-full object-contain" style={{ transform: 'skewX(12deg)' }} />
               </div>
               <div className="pt-4 text-center space-y-3">
                 <div>
@@ -120,10 +107,10 @@ export default function HomePage() {
           </Card>
 
           {/* Quiz */}
-          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all">
+          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all" style={{ transform: 'skewX(-12deg)' }}>
             <div className="aspect-square w-full grid grid-rows-[1fr_auto] p-5">
               <div className="relative overflow-hidden min-h-0">
-                <img src="/quiz.png" alt="クイズ" className="absolute inset-0 m-auto h-46 w-46 object-contain " />
+                <img src="/quiz.png" alt="クイズ" className="absolute inset-0 m-auto h-46 w-46 object-contain" style={{ transform: 'skewX(12deg)' }} />
               </div>
               <div className="pt-4 text-center space-y-3">
                 
@@ -139,10 +126,10 @@ export default function HomePage() {
           </Card>
 
           {/* Chat */}
-          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all">
+          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all" style={{ transform: 'skewX(-12deg)' }}>
             <div className="aspect-square w-full grid grid-rows-[1fr_auto] p-5">
               <div className="relative overflow-hidden min-h-0">
-                <img src="/chat.png" alt="チャット" className="absolute inset-0 m-auto h-full w-full object-contain " />
+                <img src="/chat.png" alt="チャット" className="absolute inset-0 m-auto h-full w-full object-contain" style={{ transform: 'skewX(12deg)' }} />
               </div>
               <div className="pt-4 text-center space-y-3">
              
@@ -150,12 +137,16 @@ export default function HomePage() {
                   <CardTitle className="text-xl text-foreground">先生とチャット</CardTitle>
                   <CardDescription className="text-muted-foreground">わからないことを聞いてみよう</CardDescription>
                 </div>
-                <Button className="h-12 text-base gap-2 px-8 w-full" variant="outline" onClick={() => router.push("/chat")}> 
-                  ひらく <ArrowRight className="h-4 w-4" />
+                <Button className="h-12 text-base gap-2 px-8 w-full bg-red-500 text-white hover:bg-red-600" onClick={() => router.push("/chat")}> 
+                  ひらく <ArrowRight className="h-4 w-4 text-white" />
                 </Button>
               </div>
             </div>
           </Card>
+        </div>
+        {/* StudentDashboardを一番下に配置 */}
+        <div className="mt-10">
+          <StudentDashboard />
         </div>
       </div>
     </StudentLayout>

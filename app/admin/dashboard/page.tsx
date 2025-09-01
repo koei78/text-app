@@ -123,23 +123,38 @@ export default function AdminDashboardPage() {
 
   return (
     <TeacherLayout>
-      <div className="space-y-6">
+      <div className="relative space-y-6 bg-orange-200 overflow-hidden">
+        {/* 斜め等間隔の玉模様 */}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-orange-400/40"
+            style={{
+              width: '80px',
+              height: '80px',
+              top: `${40 + i * 120}px`,
+              left: `${-40 + i * 160}px`,
+              transform: 'rotate(-20deg)',
+              zIndex: 0,
+            }}
+          />
+        ))}
         {/* Header */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-6 pt-8">
           <div className="flex justify-center">
-            <div className="bg-primary/10 rounded-full p-4">
-              <BarChart3 className="h-12 w-12 text-primary" />
+            <div className="bg-gradient-to-tr from-pink-300 via-blue-300 to-yellow-300 rounded-full p-6 shadow-lg">
+              <BarChart3 className="h-16 w-16 text-white drop-shadow" />
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">ダッシュボード</h1>
-            <p className="text-muted-foreground mt-2">生徒の学習状況を確認しましょう</p>
+            <h1 className="text-4xl font-extrabold text-pink-600 drop-shadow">ダッシュボード</h1>
+            <p className="text-lg text-blue-500 mt-2 font-semibold">生徒の学習状況を確認しましょう</p>
           </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-0 bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur">
+  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mt-6">
+          <Card className="border-0 bg-gradient-to-tr from-pink-200 via-blue-200 to-yellow-200 shadow-xl rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -151,7 +166,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-r from-secondary/10 to-secondary/5 backdrop-blur">
+          <Card className="border-0 bg-gradient-to-tr from-blue-200 via-pink-200 to-yellow-200 shadow-xl rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -163,7 +178,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-r from-accent/10 to-accent/5 backdrop-blur">
+          <Card className="border-0 bg-gradient-to-tr from-yellow-200 via-pink-200 to-blue-200 shadow-xl rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -175,7 +190,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-r from-green-100/50 to-green-50/50 backdrop-blur">
+          <Card className="border-0 bg-gradient-to-tr from-green-200 via-blue-200 to-pink-200 shadow-xl rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
