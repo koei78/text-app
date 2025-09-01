@@ -89,17 +89,19 @@ export default function HomePage() {
         {/* Action Cards (square) */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Materials */}
-          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all" style={{ transform: 'skewX(-12deg)' }}>
-            <div className="aspect-square w-full grid grid-rows-[1fr_auto] p-5">
+          <Card
+            className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all bg-[url('/top-text.png')] bg-cover bg-[center_150%]"
+            style={{ transform: 'skewX(-12deg)', color: 'red' }}
+          >
+            <div className="aspect-[2/2.3] w-full grid grid-rows-[1fr_auto] p-8">
               <div className="relative overflow-hidden min-h-0">
-                <img src="/マイクロビットimg.png" alt="教材" className="absolute inset-0 m-auto h-60 w-full object-contain" style={{ transform: 'skewX(12deg)' }} />
               </div>
               <div className="pt-4 text-center space-y-3">
                 <div>
-                  <CardTitle className="text-xl text-foreground">教材でまなぶ</CardTitle>
-                  <CardDescription className="text-muted-foreground">たのしい教材がいっぱい！</CardDescription>
+                  <CardTitle className="text-xl text-white">教材でまなぶ</CardTitle>
+                  <CardDescription className="text-white">たのしい教材がいっぱい！</CardDescription>
                 </div>
-                <Button className="h-12 text-base gap-2 px-8 w-full" onClick={() => router.push("/materials")}>
+                <Button className="h-12 text-base gap-2 px-8 w-full shadow-lg" onClick={() => router.push("/materials")}>
                   開く <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -107,18 +109,19 @@ export default function HomePage() {
           </Card>
 
           {/* Quiz */}
-          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all" style={{ transform: 'skewX(-12deg)' }}>
-            <div className="aspect-square w-full grid grid-rows-[1fr_auto] p-5">
+          <Card
+            className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all bg-[url('/top-quiz.png')] bg-cover bg-[center_150%]"
+            style={{ transform: 'skewX(-12deg)' }}
+          >
+            <div className="aspect-[2/2.3] w-full grid grid-rows-[1fr_auto] p-8">
               <div className="relative overflow-hidden min-h-0">
-                <img src="/quiz.png" alt="クイズ" className="absolute inset-0 m-auto h-46 w-46 object-contain" style={{ transform: 'skewX(12deg)' }} />
               </div>
               <div className="pt-4 text-center space-y-3">
-                
                 <div>
-                  <CardTitle className="text-xl text-foreground">クイズにちょうせん</CardTitle>
-                  <CardDescription className="text-muted-foreground">ゲームみたいに学べる！</CardDescription>
+                  <CardTitle className="text-xl text-white">クイズにちょうせん</CardTitle>
+                  <CardDescription className="text-white">ゲームみたいに学べる！</CardDescription>
                 </div>
-                <Button className="h-12 text-base gap-2 px-8 w-full" variant="secondary" onClick={() => router.push("/quiz")}> 
+                <Button className="h-12 text-base gap-2 px-8 w-full shadow-lg" variant="secondary" onClick={() => router.push("/quiz")}> 
                   はじめる <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -126,18 +129,19 @@ export default function HomePage() {
           </Card>
 
           {/* Chat */}
-          <Card className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all" style={{ transform: 'skewX(-12deg)' }}>
-            <div className="aspect-square w-full grid grid-rows-[1fr_auto] p-5">
+          <Card
+            className="group relative border-0 overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all bg-[url('/top-chat.png')] bg-cover bg-[center_150%]"
+            style={{ transform: 'skewX(-12deg)' }}
+          >
+            <div className="aspect-[2/2.3] w-full grid grid-rows-[1fr_auto] p-8">
               <div className="relative overflow-hidden min-h-0">
-                <img src="/chat.png" alt="チャット" className="absolute inset-0 m-auto h-full w-full object-contain" style={{ transform: 'skewX(12deg)' }} />
               </div>
               <div className="pt-4 text-center space-y-3">
-             
                 <div>
-                  <CardTitle className="text-xl text-foreground">先生とチャット</CardTitle>
-                  <CardDescription className="text-muted-foreground">わからないことを聞いてみよう</CardDescription>
+                  <CardTitle className="text-xl text-white">先生とチャット</CardTitle>
+                  <CardDescription className="text-white">わからないことを聞いてみよう</CardDescription>
                 </div>
-                <Button className="h-12 text-base gap-2 px-8 w-full bg-red-500 text-white hover:bg-red-600" onClick={() => router.push("/chat")}> 
+                <Button className="h-12 text-base gap-2 px-8 w-full bg-red-500 text-white hover:bg-red-600 shadow-lg" onClick={() => router.push("/chat")}> 
                   ひらく <ArrowRight className="h-4 w-4 text-white" />
                 </Button>
               </div>
@@ -196,6 +200,16 @@ function StudentDashboard(): React.ReactElement {
 
   const fmt = (iso: string) => new Date(iso).toLocaleString("ja-JP", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
 
+  // メッセージ本文中のURLをリンク化する関数
+  function linkify(text: string) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    return text.split(urlRegex).map((part, i) =>
+      urlRegex.test(part)
+        ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{part}</a>
+        : part
+    )
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="border bg-white">
@@ -211,7 +225,9 @@ function StudentDashboard(): React.ReactElement {
           ) : (
             latestMessages.map((m) => (
               <div key={m.id} className="flex items-start justify-between gap-3">
-                <p className="text-sm text-foreground line-clamp-2">{m.text || "(本文なし)"}</p>
+                <p className="text-sm text-foreground line-clamp-2">
+                  {m.text ? linkify(m.text) : "(本文なし)"}
+                </p>
                 <span className="shrink-0 text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3" /> {fmt(m.createdAt)}
                 </span>

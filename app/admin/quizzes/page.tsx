@@ -12,6 +12,13 @@ import { useDataStore } from "@/lib/store"
 export default function AdminQuizzesPage() {
   const { quizzes, deleteQuiz, initializeData } = useDataStore()
   const [searchQuery, setSearchQuery] = useState("")
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    level: "easy",
+    questions: [""]
+  })
 
   useEffect(() => {
     initializeData()
@@ -78,6 +85,90 @@ export default function AdminQuizzesPage() {
             <Plus className="h-4 w-4" />
             新しいクイズを作成
           </Button>
+          <Button className="gap-2" onClick={() => setIsCreateDialogOpen(true)} style={{ display: 'none' }}>
+            <Plus className="h-4 w-4" />
+            新しいクイズを作成
+          </Button>
+          <Button className="ml-2" variant="secondary" onClick={() => setIsCreateDialogOpen(true)}>
+            クイズ作成
+          </Button>
+          {isCreateDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
+                <h2 className="text-xl font-bold mb-4">新しいクイズを作成</h2>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="タイトル"
+                    value={formData.title}
+                    onChange={e => setFormData(f => ({ ...f, title: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="説明"
+                    value={formData.description}
+                    onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
+                  />
+                  <select
+                    className="w-full border rounded p-2"
+                    value={formData.level}
+                    onChange={e => setFormData(f => ({ ...f, level: e.target.value }))}
+                  >
+                    <option value="easy">かんたん</option>
+                    <option value="normal">ふつう</option>
+                    <option value="hard">むずかしい</option>
+                  </select>
+                  <div>
+                    <label className="block mb-2 font-medium">問題リスト</label>
+                    {formData.questions.map((q, idx) => (
+                      <div key={idx} className="flex gap-2 mb-2">
+                        <Input
+                          placeholder={`問題${idx + 1}`}
+                          value={q}
+                          onChange={e => {
+                            const arr = [...formData.questions]
+                            arr[idx] = e.target.value
+                            setFormData(f => ({ ...f, questions: arr }))
+                          }}
+                        />
+                        <Button size="sm" variant="outline" onClick={() => {
+                          setFormData(f => ({ ...f, questions: f.questions.filter((_, i) => i !== idx) }))
+                        }}>削除</Button>
+                      </div>
+                    ))}
+                    <Button size="sm" variant="secondary" onClick={() => setFormData(f => ({ ...f, questions: [...f.questions, ""] }))}>問題を追加</Button>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-6 justify-end">
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>キャンセル</Button>
+                  <Button
+                    onClick={async () => {
+                      // Supabase連携: クイズ新規作成API呼び出し
+                      const payload = {
+                        title: formData.title,
+                        description: formData.description,
+                        level: formData.level,
+                        questions: formData.questions.filter(q => q.trim()),
+                        updatedAt: new Date().toISOString()
+                      }
+                      try {
+                        const res = await fetch("/api/quizzes", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload)
+                        })
+                        if (res.ok) {
+                          const { id } = await res.json()
+                          addQuiz({ id, ...payload })
+                          setIsCreateDialogOpen(false)
+                          setFormData({ title: "", description: "", level: "easy", questions: [""] })
+                        }
+                      } catch {}
+                    }}
+                    disabled={!formData.title.trim() || formData.questions.every(q => !q.trim())}
+                  >作成</Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Search */}

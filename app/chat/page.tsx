@@ -198,6 +198,40 @@ export default function ChatPage() {
     await supabase.from("messages").insert({ sender_email: user.email, receiver_email: partner.email, text, image_url })
   }
 
+  // メッセージ本文中のURLをリンク化＋プレビュー表示
+  function renderMessageText(text: string) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const urls = text.match(urlRegex)
+    return (
+      <>
+        {text.split(urlRegex).map((part, i) =>
+          urlRegex.test(part)
+            ? (
+              <a
+                key={i}
+                href={part}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline break-all block mt-1"
+              >
+                {part}
+              </a>
+            )
+            : part
+        )}
+        {/* プレビュー領域（URLがあれば） */}
+        {urls && urls.map((url, idx) => (
+          <div key={idx} className="border rounded bg-white p-2 mt-2 shadow text-xs">
+            <div className="font-bold text-blue-700 mb-1">リンクプレビュー</div>
+            <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+              {url}
+            </a>
+          </div>
+        ))}
+      </>
+    )
+  }
+
   return (
     <StudentLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
@@ -268,7 +302,11 @@ export default function ChatPage() {
                           {m.imageUrl && (
                             <img src={m.imageUrl} alt="image" className="rounded-md mb-2 max-h-60 object-contain" />
                           )}
-                          {m.text && <p className="text-sm leading-relaxed">{m.text}</p>}
+                          {m.text && (
+                            <div className="text-sm leading-relaxed">
+                              {renderMessageText(m.text)}
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs opacity-70">{formatTime(m.createdAt)}</span>
                             {isMe && <div className="text-xs opacity-70">{m.read ? "既読" : "未読"}</div>}

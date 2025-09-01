@@ -37,7 +37,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div
+      className="min-h-screen bg-white flex items-center justify-center p-4"
+      style={{
+        backgroundImage: "url('/login.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
@@ -46,7 +54,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">KidCoder-Online</h1>
+            <h1 className="text-3xl font-bold text-foreground">HOMEラボ・キッズ</h1>
             <p className="text-muted-foreground mt-2">楽しく学ぼう！</p>
           </div>
         </div>
