@@ -26,60 +26,168 @@ type LinkPreview = {
   description?: string
   image?: string
   url?: string
+  provider?: "zoom" | "youtube-oembed" | "vimeo" | "spotify" | "soundcloud" | "github" | "image" | "pdf" | "basic"
+  blocked?: boolean
+  reason?: string
   _status?: "ok" | "loading" | "error"
   _errorMsg?: string
 }
 
-const URL_REGEX = /(https?:\/\/[^\s<>()"\u3000]+)/gi
+// 抽出用（global）と判定用（non-global）を分ける
+const URL_REGEX_G = /(https?:\/\/[^\s<>()"\u3000]+)/gi
+const URL_IS = /(https?:\/\/[^\s<>()"\u3000]+)/
 
 function extractUrls(text: string): string[] {
   const s = new Set<string>()
-  for (const m of text.matchAll(URL_REGEX)) {
+  for (const m of text.matchAll(URL_REGEX_G)) {
     if (m[0]) s.add(m[0])
   }
   return [...s]
 }
 
+
+
 function PreviewCard({ data }: { data: LinkPreview }) {
-  return (
-    <a
-      href={data.url || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block border rounded-xl bg-white/90 hover:bg-white transition p-3 mt-2 shadow-sm"
-    >
-      <div className="flex gap-3 items-start">
-        {/* サムネイル */}
-        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0">
-          {data._status === "loading" ? (
-            <Loader2 className="h-5 w-5 animate-spin opacity-60" />
-          ) : data.image ? (
-            // 画像エラー時のフォールバック
-            <img
-              src={data.image}
-              alt={data.title || data.url || "preview"}
-              className="w-full h-full object-cover"
-              onError={(e) => ((e.currentTarget.style.display = "none"))}
-            />
-          ) : (
-            <ImageIcon className="h-5 w-5 opacity-60" />
-          )}
+  // 画像直リンク
+  if (data.provider === "image") {
+    return (
+      <a href={data.url!} target="_blank" rel="noopener noreferrer"
+         className="inline-block max-w-xs border rounded-xl bg-white transition p-3 mt-2 shadow-sm">
+        <img src={data.image!} alt="image" className="w-full rounded-md object-cover max-h-48" />
+        <div className="text-xs text-blue-700 mt-2 break-all">{data.url}</div>
+      </a>
+    )
+  }
+
+  // PDF 直リンク
+  if (data.provider === "pdf") {
+    return (
+      <a href={data.url!} target="_blank" rel="noopener noreferrer"
+         className="inline-block max-w-xs border rounded-xl bg-white/90 hover:bg-white transition p-3 mt-2 shadow-sm">
+        <div className="flex gap-3 items-start">
+          <div className="w-10 h-10 rounded-md bg-red-100 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="currentColor" /></svg>
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold leading-tight">PDF</div>
+            <div className="text-xs text-muted-foreground mt-1">クリックで開く</div>
+            <div className="text-xs text-blue-700 mt-1 truncate">{data.url}</div>
+          </div>
         </div>
-        {/* テキスト部 */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <LinkIcon className="h-3.5 w-3.5 opacity-60" />
-            <span className="text-xs text-blue-700 truncate">{data.url}</span>
+      </a>
+    )
+  }
+
+  // Zoom（LinkPreviewを通さない想定）
+  if (data.provider === "zoom") {
+    return (
+      <a href={data.url!} target="_blank" rel="noopener noreferrer"
+         className="inline-block max-w-xs border rounded-xl bg-white/90 hover:bg-skyblue transition p-3 mt-2 shadow-sm">
+        <div className="flex gap-3 items-start">
+          <div className="w-20 h-20 rounded-md bg-blue-500 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 24 24" width="38" height="38"><path d="M15 10l4-3v10l-4-3v2a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h8a2 2 0 012 2v2z" fill="white"/></svg>
           </div>
-          <div className="font-semibold leading-tight line-clamp-2">{data.title || "タイトルなし"}</div>
-          <div className="text-xs text-muted-foreground mt-1 line-clamp-3">
-            {data._status === "error" ? `プレビュー取得に失敗しました: ${data._errorMsg ?? ""}` : (data.description || "説明はありません")}
+          <div className="min-w-0">
+            <div className="text-xs text-blue-700 truncate">{data.url}</div>
+            <div className="font-semibold  text-black leading-tight mt-1">{data.title || "Zoom"}</div>
+            <div className="text-xs text-black mt-1">{data.description || "リンク"}</div>
           </div>
+        </div>
+      </a>
+    )
+  }
+
+  // oEmbed系（YouTube/Vimeo/Spotify/SoundCloud）
+  if (["youtube-oembed", "vimeo", "spotify", "soundcloud"].includes(data.provider || "")) {
+    return (
+      <a href={data.url!} target="_blank" rel="noopener noreferrer"
+         className="inline-block max-w-xs border rounded-xl bg-white/90 hover:bg-white transition p-3 mt-2 shadow-sm">
+        <div className="flex gap-3 items-start">
+          <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0">
+            {data.image ? <img src={data.image} alt={data.title || "preview"} className="w-full h-full object-cover" /> : <div className="text-xs opacity-60">media</div>}
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold leading-tight line-clamp-2">{data.title || "メディア"}</div>
+            <div className="text-xs text-muted-foreground mt-1">{data.description || data.provider}</div>
+            <div className="text-xs text-blue-700 mt-1 truncate">{data.url}</div>
+          </div>
+        </div>
+      </a>
+    )
+  }
+
+  // GitHub 簡易
+  if (data.provider === "github") {
+    return (
+      <a href={data.url!} target="_blank" rel="noopener noreferrer"
+         className="inline-block max-w-xs border rounded-xl bg-white/90 hover:bg-white transition p-3 mt-2 shadow-sm">
+        <div className="flex gap-3 items-start">
+          <div className="w-10 h-10 rounded-md bg-slate-100 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 .5C5.73.5.98 5.24.98 11.5c0 4.85 3.14 8.96 7.49 10.41.55.1.75-.24.75-.53v-1.88c-3.05.66-3.69-1.3-3.69-1.3-.5-1.27-1.23-1.6-1.23-1.6-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 .1.77 1.99 2.82 1.42.1-.74.39-1.25.71-1.53-2.44-.28-5-1.22-5-5.41 0-1.2.43-2.19 1.14-2.96-.12-.28-.49-1.41.11-2.94 0 0 .93-.3 3.05 1.13.89-.25 1.84-.37 2.79-.38.95.01 1.9.13 2.79.38 2.12-1.43 3.04-1.13 3.04-1.13.6 1.53.23 2.66.11 2.94.71.77 1.14 1.76 1.14 2.96 0 4.2-2.57 5.12-5.02 5.4.4.34.76 1.01.76 2.05v3.03c0 .29.2.63.76.53 4.35-1.45 7.49-5.56 7.49-10.41C23.02 5.24 18.27.5 12 .5z" fill="currentColor"/></svg>
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold leading-tight">{data.title || "GitHub"}</div>
+            <div className="text-xs text-muted-foreground mt-1">{data.description || "リンク"}</div>
+            <div className="text-xs text-blue-700 mt-1 truncate">{data.url}</div>
+          </div>
+        </div>
+      </a>
+    )
+  }
+
+  // blocked（403/423/429/451 等は静かなフォールバック）
+  if (data.blocked) {
+    return (
+      <a href={data.url!} target="_blank" rel="noopener noreferrer"
+         className="inline-block max-w-xs border rounded-xl bg-white/80 hover:bg-white transition p-3 mt-2 shadow-sm">
+        <div className="text-xs text-muted-foreground mb-1">このリンクはプレビュー非対応</div>
+        <div className="text-blue-700 underline break-all text-sm">{data.url}</div>
+      </a>
+    )
+  }
+
+  // 通常（LinkPreviewの成功パス）
+  // 通常（LinkPreviewの成功パス）
+return (
+  <a
+    href={data.url || "#"}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-block max-w-xs border rounded-xl rounded-br-nonebg-white/90 hover:bg-white transition p-3 mt-2 shadow-sm"
+  >
+    <div className="flex gap-3 items-start">
+      <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0">
+        {data._status === "loading" ? (
+          <Loader2 className="h-5 w-5 animate-spin opacity-60" />
+        ) : data.image ? (
+          <img
+            src={data.image}
+            alt={data.title || data.url || "preview"}
+            className="w-full h-full object-cover"
+            onError={(e) => ((e.currentTarget.style.display = "none"))}
+          />
+        ) : (
+          <ImageIcon className="h-5 w-5 opacity-60" />
+        )}
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <LinkIcon className="h-3.5 w-3.5 opacity-60" />
+          <span className="text-xs text-blue-700 truncate">{data.url}</span>
+        </div>
+        <div className="font-semibold leading-tight line-clamp-2">{data.title || "タイトルなし"}</div>
+        <div className="text-xs text-muted-foreground mt-1 line-clamp-3">
+          {data._status === "error"
+            ? `プレビュー取得に失敗しました: ${data._errorMsg ?? ""}`
+            : (data.description || "説明はありません")}
         </div>
       </div>
-    </a>
-  )
+    </div>
+  </a>
+)
+
 }
+
 
 export default function ChatPage() {
   const { user } = useAuthStore()
@@ -139,7 +247,7 @@ export default function ChatPage() {
 
     const workers = Array.from({ length: Math.min(concurrency, toFetch.length) }, () => worker())
     Promise.all(workers).catch(() => {})
-  }, [msgs, previewMap])
+  }, [msgs])
 
   const partner = useMemo(() => {
     if (!user) return null
@@ -303,30 +411,30 @@ export default function ChatPage() {
 
   // メッセージ本文中のURLをリンク化 + プレビュー表示
   function renderMessageText(text: string) {
-    const parts = text.split(URL_REGEX)
-    const urls = extractUrls(text)
-    return (
-      <>
-        {parts.map((part, i) =>
-          URL_REGEX.test(part) ? (
-            <a key={`lnk-${i}`} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
-              {part}
-            </a>
-          ) : (
-            <span key={`txt-${i}`}>{part}</span>
-          )
-        )}
+  const parts = text.split(URL_REGEX_G)
+  const urls = extractUrls(text) /* .slice(0, 3) ← 上限をつけたい場合 */
 
-        {/* プレビュー（URLごと） */}
-        {urls.map((u) => {
-          const p = previewMap[u]
-          // まだ何もない(=取得予約前)場合は出さない
-          if (!p) return null
-          return <PreviewCard key={`pv-${u}`} data={p} />
-        })}
-      </>
-    )
-  }
+  return (
+    <>
+      {parts.map((part, i) =>
+        URL_IS.test(part) ? (
+          <a key={`lnk-${i}`} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+            {part}
+          </a>
+        ) : (
+          <span key={`txt-${i}`}>{part}</span>
+        )
+      )}
+
+      {urls.map((u) => {
+        const p = previewMap[u]
+        if (!p) return null
+        return <PreviewCard key={`pv-${u}`} data={p} />
+      })}
+    </>
+  )
+}
+
 
   return (
     <StudentLayout>
@@ -394,7 +502,16 @@ export default function ChatPage() {
                           </div>
                         )}
                         <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isMe ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+<div
+  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+    isMe
+      ? "rounded-br-none bg-primary text-primary-foreground" // 自分(右)は右下を直角
+      : "rounded-bl-none bg-muted text-foreground"           // 相手(左)は左下を直角
+  }`}
+>
+
+
+
                             {m.imageUrl && (
                               <img src={m.imageUrl} alt="image" className="rounded-md mb-2 max-h-60 object-contain" />
                             )}
@@ -439,3 +556,4 @@ export default function ChatPage() {
     </StudentLayout>
   )
 }
+
